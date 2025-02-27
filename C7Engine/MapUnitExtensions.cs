@@ -6,6 +6,7 @@ namespace C7Engine {
 	using System.Linq;
 	using Pathing;
 	using C7GameData;
+	using C7GameData.Save;
 
 	//We should document why we're putting things in the extensions methods.  We discussed it a month or so ago, but I forget why at this point.
 	//Coming from an OO background, I'm wondering why these aren't on the MapUnit class... data access?  Modding?  Some other benefit?
@@ -287,6 +288,27 @@ namespace C7Engine {
 			if (tile.HasCity && !unit.owner.IsAtPeaceWith(tile.cityAtTile.owner)) {
 				CityInteractions.DestroyCity(tile.XCoordinate, tile.YCoordinate);
 			}
+
+			// Check to see if we've discovered a new civ.
+			//
+			// TODO: this should really be based on interactions with our "visible"
+			// tiles. Also civ3 only counts border-based discovery from rank 1
+			// tiles, not rank 2+.
+			foreach (Tile t in tile.neighbors.Values) {
+				if (t.unitsOnTile.Count > 0) {
+					MaybeAddPlayerKnowledge(t.unitsOnTile[0].owner, unit.owner);
+				}
+				if (t.owningCity != null) {
+					MaybeAddPlayerKnowledge(t.owningCity.owner, unit.owner);
+				}
+			}
+		}
+
+		private static void MaybeAddPlayerKnowledge(Player a, Player b) {
+			if (a != b && !a.playerRelationships.ContainsKey(b.id)) {
+				a.playerRelationships.Add(b.id, new PlayerRelationship());
+				b.playerRelationships.Add(a.id, new PlayerRelationship());
+			}
 		}
 
 		public static bool CanEnterTile(this MapUnit unit, Tile tile, bool allowCombat) {
@@ -440,7 +462,7 @@ namespace C7Engine {
 		}
 
 		public static bool canBuildRoad(this MapUnit unit) {
-			return unit.unitType.actions.Contains(C7Action.UnitBuildRoad) && unit.location.IsLand() && !unit.location.overlays.road;
+			return unit.unitType.actions.Contains(C7Action.UnitBuildRoad) && unit.location.CanBeRoaded();
 		}
 
 		public static void buildRoad(this MapUnit unit) {
@@ -458,10 +480,7 @@ namespace C7Engine {
 			// Mines can only be built on tiles with a mining bonus, if there is
 			// no mine/irrigation already there, and if there isn't a city.
 			return unit.unitType.actions.Contains(C7Action.UnitBuildMine) &&
-				unit.location.overlayTerrainType.miningBonus > 0 &&
-				!unit.location.overlays.mine &&
-				!unit.location.overlays.irrigation &&
-				unit.location.cityAtTile == null;
+				unit.location.CanBeMined();
 		}
 
 		public static void buildMine(this MapUnit unit) {
@@ -475,49 +494,8 @@ namespace C7Engine {
 			unit.movementPoints.onConsumeAll();
 		}
 
-		// TODO: This method doesn't handle two important irrigation cases:
-		//  - inland lakes/seas: we need to figure out what is fresh/salt water
-		//  - Electricity tech, to allow irrigating w/o fresh water access
 		public static bool canIrrigate(this MapUnit unit) {
-			// Irrigation can't be done if the unit doesn't have the action, if
-			// there is no irrigation bonus for the tile, or if there's already
-			// an improvement or city on the tile.
-			if (!unit.unitType.actions.Contains(C7Action.UnitIrrigate) ||
-				unit.location.overlayTerrainType.irrigationBonus == 0 ||
-				unit.location.overlays.mine ||
-				unit.location.overlays.irrigation ||
-				unit.location.cityAtTile != null) {
-				return false;
-			}
-
-			// If a tile borders a river, it has fresh water access.
-			if (unit.location.BordersRiver()) {
-				return true;
-			}
-
-			foreach (KeyValuePair<TileDirection, Tile> dirToTile in unit.location.neighbors) {
-				// If a neighboring tile is irrigated, this tile has fresh water access.
-				if (dirToTile.Value.overlays.irrigation) {
-					return true;
-				}
-
-				// Special case, if we are neighboring the worker's city, check
-				// if the city can act as part of an irrigation chain.
-				if (dirToTile.Value.cityAtTile?.owner == unit.owner) {
-					if (dirToTile.Value.BordersRiver()) {
-						return true;
-					}
-
-					foreach (var (dir, tile) in dirToTile.Value.neighbors) {
-						if (tile.overlays.irrigation) {
-							return true;
-						}
-					}
-				}
-			}
-
-			return false;
-
+			return unit.unitType.actions.Contains(C7Action.UnitIrrigate) && unit.location.CanBeIrrigated(unit.owner);
 		}
 
 		public static void irrigate(this MapUnit unit) {
