@@ -10,7 +10,11 @@ public partial class MainMenu : Node2D {
 
 	ImageTexture InactiveButton;
 	ImageTexture HoverButton;
-	TextureRect MainMenuBackground;
+	CanvasLayer BackgroundLayer;
+	CanvasLayer UILayer;
+	Control TitleCard;
+	[Export]
+	PackedScene SetTitleCard;
 	[Export]
 	Civ3FileDialog LoadDialog;
 	[Export]
@@ -63,25 +67,29 @@ public partial class MainMenu : Node2D {
 			SetCiv3Home.Visible = false;
 		} catch (Exception ex) {
 			log.Error(ex, "Could not set up the main menu");
-			GetNode<Label>("CanvasLayer/Label").Visible = true;
-			GetNode<ColorRect>("CanvasLayer/ColorRect").Visible = true;
+			GetNode<Label>("UILayer/Label").Visible = true;
+			GetNode<ColorRect>("UILayer/ColorRect").Visible = true;
 		}
 	}
 
 	private void SetMainMenuBackground() {
-		ImageTexture TitleScreenTexture = Util.LoadTextureFromC7JPG("Art/Title_Screen.jpg");
-		MainMenuBackground = GetNode<TextureRect>("CanvasLayer/MainMenuBackground");
-		MainMenuBackground.StretchMode = TextureRect.StretchModeEnum.Scale;
-		MainMenuBackground.Texture = TitleScreenTexture;
+		BackgroundLayer = GetNode<CanvasLayer>("BackgroundLayer");
+		UILayer = GetNode<CanvasLayer>("UILayer");
+		TitleCard = SetTitleCard.Instantiate<Control>();
+		BackgroundLayer.AddChild(TitleCard);
 	}
 
 	private void AddButton(string label, int verticalPosition, Action action) {
-		TextureButton newButton = new TextureButton();
+		//TODO: Figure out a cleaner way to make adaptive buttons
+		/*TextureButton newButton = new TextureButton();
 		newButton.TextureNormal = InactiveButton;
 		newButton.TextureHover = HoverButton;
-		newButton.SetPosition(new Vector2(MENU_OFFSET_FROM_LEFT, MENU_OFFSET_FROM_TOP + verticalPosition));
-		MainMenuBackground.AddChild(newButton);
+		newButton.AnchorLeft = 0f;
+		newButton.AnchorTop = 0f;
+		TitleCard.GetNode("UI").AddChild(newButton);
 		newButton.Pressed += action;
+		*/
+
 
 		Theme theme = new Theme();
 		theme.SetFontSize("font_size", "Button", 14);
@@ -89,8 +97,7 @@ public partial class MainMenu : Node2D {
 		newButtonLabel.Theme = theme;
 		newButtonLabel.Text = label;
 
-		newButtonLabel.SetPosition(new Vector2(MENU_OFFSET_FROM_LEFT + 25, MENU_OFFSET_FROM_TOP + verticalPosition + BUTTON_LABEL_OFFSET));
-		MainMenuBackground.AddChild(newButtonLabel);
+		TitleCard.GetNode("Menu").AddChild(newButtonLabel);
 		newButtonLabel.Pressed += action;
 	}
 
@@ -131,7 +138,7 @@ public partial class MainMenu : Node2D {
 
 	private void PlayButtonPressedSound() {
 		AudioStreamWav wav = Util.LoadWAVFromDisk(Util.Civ3MediaPath("Sounds/Button1.wav"));
-		AudioStreamPlayer player = GetNode<AudioStreamPlayer>("CanvasLayer/SoundEffectPlayer");
+		AudioStreamPlayer player = GetNode<AudioStreamPlayer>("UILayer/SoundEffectPlayer");
 		player.Stream = wav;
 		player.Play();
 	}
