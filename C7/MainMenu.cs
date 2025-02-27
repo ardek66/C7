@@ -80,15 +80,12 @@ public partial class MainMenu : Node2D {
 	}
 
 	private void AddButton(string label, int verticalPosition, Action action) {
-		//TODO: Figure out a cleaner way to make adaptive buttons
-		/*TextureButton newButton = new TextureButton();
+		TextureButton newButton = new TextureButton();
 		newButton.TextureNormal = InactiveButton;
 		newButton.TextureHover = HoverButton;
 		newButton.AnchorLeft = 0f;
 		newButton.AnchorTop = 0f;
-		TitleCard.GetNode("UI").AddChild(newButton);
 		newButton.Pressed += action;
-		*/
 
 
 		Theme theme = new Theme();
@@ -97,8 +94,12 @@ public partial class MainMenu : Node2D {
 		newButtonLabel.Theme = theme;
 		newButtonLabel.Text = label;
 
-		TitleCard.GetNode("MenuBox/ScrollMenu/Contents").AddChild(newButtonLabel);
 		newButtonLabel.Pressed += action;
+
+		HBoxContainer newContainer = new HBoxContainer();
+		newContainer.AddChild(newButton);
+		newContainer.AddChild(newButtonLabel);
+		TitleCard.GetNode("MenuBox/ScrollMenu/Contents").AddChild(newContainer);
 	}
 
 	public void StartGame() {
