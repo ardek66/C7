@@ -97,7 +97,7 @@ public partial class MainMenu : Node2D {
 		newButtonLabel.Theme = theme;
 		newButtonLabel.Text = label;
 
-		TitleCard.GetNode("MenuPanel/ScrollMenu/Contents").AddChild(newButtonLabel);
+		TitleCard.GetNode("MenuBox/ScrollMenu/Contents").AddChild(newButtonLabel);
 		newButtonLabel.Pressed += action;
 	}
 
