@@ -8,13 +8,13 @@ public partial class MainMenu : Node2D {
 
 	readonly int BUTTON_LABEL_OFFSET = 0;
 
-	ImageTexture InactiveButton;
-	ImageTexture HoverButton;
 	CanvasLayer BackgroundLayer;
 	CanvasLayer UILayer;
 	Control TitleCard;
 	[Export]
 	PackedScene SetTitleCard;
+	[Export]
+	PackedScene SetMenuButton;
 	[Export]
 	Civ3FileDialog LoadDialog;
 	[Export]
@@ -49,19 +49,16 @@ public partial class MainMenu : Node2D {
 		try {
 			SetMainMenuBackground();
 
-			InactiveButton = Util.LoadTextureFromPCX("Art/buttonsFINAL.pcx", 1, 1, 20, 20, false);
-			HoverButton = Util.LoadTextureFromPCX("Art/buttonsFINAL.pcx", 22, 1, 20, 20, false);
-
-			AddButton("New Game", 0, StartGame);
-			AddButton("Quick Start", 35, StartGame);
-			AddButton("Tutorial", 70, StartGame);
-			AddButton("Load Game", 105, LoadGame);
-			AddButton("Load Scenario", 140, LoadScenario);
-			AddButton("Hall of Fame", 175, HallOfFame);
-			AddButton("Preferences", 210, Preferences);
-			AddButton("Audio Preferences", 245, Preferences);
-			AddButton("Credits", 280, showCredits);
-			AddButton("Exit", 315, _on_Exit_pressed);
+			AddButton("New Game", StartGame);
+			AddButton("Quick Start", StartGame);
+			AddButton("Tutorial", StartGame);
+			AddButton("Load Game", LoadGame);
+			AddButton("Load Scenario", LoadScenario);
+			AddButton("Hall of Fame", HallOfFame);
+			AddButton("Preferences", Preferences);
+			AddButton("Audio Preferences", Preferences);
+			AddButton("Credits", showCredits);
+			AddButton("Exit", _on_Exit_pressed);
 
 			// Hide select home folder if valid path is present as proven by reaching this point in code
 			SetCiv3Home.Visible = false;
@@ -76,30 +73,17 @@ public partial class MainMenu : Node2D {
 		BackgroundLayer = GetNode<CanvasLayer>("BackgroundLayer");
 		UILayer = GetNode<CanvasLayer>("UILayer");
 		TitleCard = SetTitleCard.Instantiate<Control>();
+
+		TitleCard.GetNode("SubViewportContainer/SubViewport");
 		BackgroundLayer.AddChild(TitleCard);
 	}
 
-	private void AddButton(string label, int verticalPosition, Action action) {
-		TextureButton newButton = new TextureButton();
-		newButton.TextureNormal = InactiveButton;
-		newButton.TextureHover = HoverButton;
-		newButton.AnchorLeft = 0f;
-		newButton.AnchorTop = 0f;
+	private void AddButton(string label, Action action) {
+		Button newButton = SetMenuButton.Instantiate<Button>();
+		newButton.Text = label;
 		newButton.Pressed += action;
 
-
-		Theme theme = new Theme();
-		theme.SetFontSize("font_size", "Button", 14);
-		Button newButtonLabel = new Button();
-		newButtonLabel.Theme = theme;
-		newButtonLabel.Text = label;
-
-		newButtonLabel.Pressed += action;
-
-		HBoxContainer newContainer = new HBoxContainer();
-		newContainer.AddChild(newButton);
-		newContainer.AddChild(newButtonLabel);
-		TitleCard.GetNode("MenuBox/ScrollMenu/Contents").AddChild(newContainer);
+		TitleCard.GetNode("MenuBox/ScrollMenu/Contents").AddChild(newButton);
 	}
 
 	public void StartGame() {

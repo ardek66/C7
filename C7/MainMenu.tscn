@@ -1,8 +1,9 @@
-[gd_scene load_steps=5 format=3 uid="uid://gnt0y3og7nk6"]
+[gd_scene load_steps=6 format=3 uid="uid://gnt0y3og7nk6"]
 
 [ext_resource type="Script" path="res://MainMenu.cs" id="1"]
 [ext_resource type="PackedScene" uid="uid://b3qqdmj7nq3da" path="res://MainMenuTitleCard.tscn" id="2_gw5ov"]
 [ext_resource type="Script" path="res://MainMenuMusicPlayer.cs" id="3"]
+[ext_resource type="PackedScene" uid="uid://c87a8xgmvwalp" path="res://MainMenuButton.tscn" id="3_bixjx"]
 [ext_resource type="PackedScene" uid="uid://bvncm1bgcii5e" path="res://UIElements/civ3_file_dialog.tscn" id="4_x23yr"]
 
 [node name="MainMenu" type="Node2D" node_paths=PackedStringArray("LoadDialog", "SetCiv3Home", "SetCiv3HomeDialog", "LoadScenarioDialog")]
@@ -10,6 +11,7 @@ z_index = 1
 z_as_relative = false
 script = ExtResource("1")
 SetTitleCard = ExtResource("2_gw5ov")
+SetMenuButton = ExtResource("3_bixjx")
 LoadDialog = NodePath("UILayer/LoadDialog")
 SetCiv3Home = NodePath("UILayer/SetCiv3Home")
 SetCiv3HomeDialog = NodePath("UILayer/SetCiv3HomeDialog")
